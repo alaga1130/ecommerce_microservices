@@ -1,0 +1,300 @@
+version: '3.8'
+
+services:
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      order-mongo:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - microservices
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      payment-mongo:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - microservices
+
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      inventory-mongo:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - microservices
+
+  shipping-service:
+    build: ./shipping-service
+    container_name: shipping-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      shipping-mongo:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - microservices
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    networks:
+      - microservices
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./config-repo:/config-repo
+    environment:
+      SPRING_PROFILES_ACTIVE: native
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8888/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - microservices
+
+  order-mongo:
+    image: mongo:6
+    container_name: order-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: orderdb
+    networks:
+      - microservices
+
+  payment-mongo:
+    image: mongo:6
+    container_name: payment-mongo
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_DATABASE: paymentdb
+    networks:
+      - microservices
+
+  inventory-mongo:
+    image: mongo:6
+    container_name: inventory-mongo
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_DATABASE: inventorydb
+    networks:
+      - microservices
+
+  shipping-mongo:
+    image: mongo:6
+    container_name: shipping-mongo
+    ports:
+      - "27020:27017"
+    environment:
+      MONGO_INITDB_DATABASE: shippingdb
+    networks:
+      - microservices
+
+  mongo-express-order:
+    image: mongo-express
+    container_name: mongo-express-order
+    ports:
+      - "9091:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://order-mongo:27017/orderdb"
+    depends_on:
+      - order-mongo
+    networks:
+      - microservices
+
+  mongo-express-payment:
+    image: mongo-express
+    container_name: mongo-express-payment
+    ports:
+      - "19092:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://payment-mongo:27017/paymentdb"
+    depends_on:
+      - payment-mongo
+    networks:
+      - microservices
+
+  mongo-express-inventory:
+    image: mongo-express
+    container_name: mongo-express-inventory
+    ports:
+      - "9093:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://inventory-mongo:27017/inventorydb"
+    depends_on:
+      - inventory-mongo
+    networks:
+      - microservices
+
+  mongo-express-shipping:
+    image: mongo-express
+    container_name: mongo-express-shipping
+    ports:
+      - "9094:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://shipping-mongo:27017/shippingdb"
+    depends_on:
+      - shipping-mongo
+    networks:
+      - microservices
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - microservices
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "
+      echo 'Waiting for Kafka...';
+      sleep 5;
+      kafka-topics --create --if-not-exists --topic order-events --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1;
+      kafka-topics --create --if-not-exists --topic payment-events --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1;
+      kafka-topics --create --if-not-exists --topic inventory-events --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1;
+      kafka-topics --create --if-not-exists --topic shipping-events --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1;
+      kafka-topics --create --if-not-exists --topic refund-events --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1;
+      echo 'Kafka topics created successfully.';
+      "
+    networks:
+      - microservices
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEKPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_4LW_COMMANDS_WHITELIST: "ruok,stat,conf,isro"
+      ZOOKEEPER_ADMIN_ENABLE_SERVER: "true"
+    networks:
+      - microservices
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - microservices
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8085:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - kafka
+      - zookeeper
+    networks:
+      - microservices
+
+networks:
+  microservices:
+    driver: bridge

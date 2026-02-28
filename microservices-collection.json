@@ -1,0 +1,176 @@
+{
+  "info": {
+    "name": "Ecommerce Microservices (API Gateway)",
+    "_postman_id": "ecom-microservices-collection",
+    "description": "CRUD + Saga endpoints for Order, Payment, Inventory, Shipping via API Gateway",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Order Service",
+      "item": [
+        {
+          "name": "Ping Order Service",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/orders/ping"
+          }
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"P100\",\n  \"quantity\": 2\n}"
+            },
+            "url": "http://localhost:8080/orders"
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/orders"
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8080/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Get Orders by Status",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/orders/status/{{status}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Service",
+      "item": [
+        {
+          "name": "Ping Payment Service",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/payments/ping"
+          }
+        },
+        {
+          "name": "Process Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"amount\": 500\n}"
+            },
+            "url": "http://localhost:8080/payments"
+          }
+        },
+        {
+          "name": "Get Payment by ID",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/payments/{{paymentId}}"
+          }
+        },
+        {
+          "name": "Get All Payments",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/payments"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory Service",
+      "item": [
+        {
+          "name": "Ping Inventory Service",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/inventory/ping"
+          }
+        },
+        {
+          "name": "Add Inventory",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"P100\",\n  \"availableQuantity\": 10\n}"
+            },
+            "url": "http://localhost:8080/inventory"
+          }
+        },
+        {
+          "name": "Get Inventory by ID",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/inventory/{{inventoryId}}"
+          }
+        },
+        {
+          "name": "Get All Inventory",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/inventory"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shipping Service",
+      "item": [
+        {
+          "name": "Ping Shipping Service",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/shipping/ping"
+          }
+        },
+        {
+          "name": "Create Shipment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\"\n}"
+            },
+            "url": "http://localhost:8080/shipping"
+          }
+        },
+        {
+          "name": "Get Shipment by ID",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/shipping/{{shipmentId}}"
+          }
+        },
+        {
+          "name": "Get All Shipments",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/shipping"
+          }
+        }
+      ]
+    }
+  ]
+}

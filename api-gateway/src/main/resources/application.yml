@@ -1,0 +1,51 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    import: "optional:configserver:http://config-server:8888"
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: order-service
+          uri: http://order-service:8081
+          predicates:
+            - Path=/orders/**
+        - id: payment-service
+          uri: http://payment-service:8082
+          predicates:
+            - Path=/payments/**
+        - id: inventory-service
+          uri: http://inventory-service:8083
+          predicates:
+            - Path=/inventory/**
+        - id: shipping-service
+          uri: http://shipping-service:8084
+          predicates:
+            - Path=/shipping/**
+    config:
+      uri: http://config-server:8888
+  zipkin:
+    base-url: http://zipkin:9411         
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  tracing:
+    sampling:
+      probability: 1.0
+  observations:
+    enable:
+      http: true
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans      
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
