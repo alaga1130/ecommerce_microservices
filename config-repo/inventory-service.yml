@@ -1,0 +1,9 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: inventory-service
+  data:
+    mongodb:
+      uri: mongodb://inventory-mongo:27017/inventorydb

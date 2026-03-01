@@ -145,7 +145,7 @@ docker --version
 
 ```bash
 # Navigate to project directory
-cd ecommerce_microservices_saga
+cd ecommerce_microservices
 
 # Build all services (this may take 5-10 minutes)
 cd api-gateway && mvn clean package && cd ..
@@ -193,7 +193,7 @@ Access the services via your browser or Postman:
 ## 📂 Project Structure
 
 ```
-ecommerce_microservices_saga/
+ecommerce_microservices/
 ├── api-gateway/                 # Spring Cloud Gateway (Port 8080)
 │   ├── src/main/java/...
 │   ├── src/main/resources/
@@ -462,21 +462,73 @@ If any step fails (e.g., payment declined):
 
 ### Service Configuration
 
-Each service has its own configuration file in `config-repo/`:
+Configuration is managed centrally in the `config-repo/` directory, which is
+mounted into the Config Server. Common settings (Zipkin, Eureka, management
+endpoints, etc.) live in `application.yml`, and each microservice adds its own
+override file named after the application.
+
+Shared defaults:
+
+```yaml
+# config-repo/application.yml
+spring:
+  cloud:
+    config:
+      uri: http://config-server:8888
+  zipkin:
+    base-url: http://zipkin:9411
+
+management:
+  endpoints:
+    web:
+      exposure: '*'
+  tracing:
+    sampling:
+      probability: 1.0
+  observations:
+    enable:
+      http: true
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+```
+
+Service‑specific example:
 
 ```yaml
 # config-repo/order-service.yml
+server:
+  port: 8081
+
 spring:
   application:
     name: order-service
   data:
     mongodb:
       uri: mongodb://order-mongo:27017/orderdb
-  kafka:
-    bootstrap-servers: kafka:9092
-    
+```
+
+Each service’s **local** `application.yml` still contains only the bootstrap
+properties and the overrides it needs; everything else is pulled from the
+Config Server:
+
+```yaml
 server:
   port: 8081
+
+spring:
+  config:
+    import: "optional:configserver:http://config-server:8888"
+  application:
+    name: order-service
+  data:
+    mongodb:
+      uri: mongodb://order-mongo:27017/orderdb
 ```
 
 ### Environment Profiles

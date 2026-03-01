@@ -2,8 +2,6 @@ server:
   port: 8080
 
 spring:
-  config:
-    import: "optional:configserver:http://config-server:8888"
   application:
     name: api-gateway
   cloud:
@@ -25,6 +23,3 @@ spring:
           uri: http://shipping-service:8084
           predicates:
             - Path=/shipping/**
-
-# gateway-specific routes are defined here; other common properties come from config server
-

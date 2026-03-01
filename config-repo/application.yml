@@ -1,0 +1,30 @@
+spring:
+  cloud:
+    config:
+      uri: http://config-server:8888
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+  zipkin:
+    base-url: http://zipkin:9411
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  tracing:
+    sampling:
+      probability: 1.0
+  observations:
+    enable:
+      http: true
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/

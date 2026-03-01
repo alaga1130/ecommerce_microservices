@@ -2,13 +2,8 @@ server:
   port: 8084
 
 spring:
-  config:
-    import: "optional:configserver:http://config-server:8888"
   application:
     name: shipping-service
   data:
     mongodb:
       uri: mongodb://shipping-mongo:27017/shippingdb
-
-# shared defaults come from configuration server
-

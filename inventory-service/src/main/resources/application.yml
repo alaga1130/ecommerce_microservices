@@ -9,29 +9,6 @@ spring:
   data:
     mongodb:
       uri: mongodb://inventory-mongo:27017/inventorydb
-  cloud:
-    config:
-      uri: http://config-server:8888
-  zipkin:
-    base-url: http://zipkin:9411         
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-  tracing:
-    sampling:
-      probability: 1.0
-  observations:
-    enable:
-      http: true
-  zipkin:
-    tracing:
-      endpoint: http://zipkin:9411/api/v2/spans
+# other settings (Zipkin, Eureka, management) are supplied by the central config server
 
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://eureka-server:8761/eureka/
