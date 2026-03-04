@@ -865,10 +865,4 @@ Key Spring Cloud dependencies:
 - [Docker Documentation](https://docs.docker.com/)
 - [Saga Pattern](https://microservices.io/patterns/data/saga.html)
 
-## 📄 License
 
-This project is provided as-is for educational and demonstration purposes.
-
----
-
-**Last Updated**: March 1, 2026
